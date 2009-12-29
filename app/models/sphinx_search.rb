@@ -10,9 +10,13 @@ class SphinxSearch
   end
 
   def self.search(language, search, options)
-
-    # set the host and port here
     client = Sphinx::Client.new
+
+    searchd = Sphinx::AdminController.searchd
+    searchd_host, searchd_port = searchd.split ':'
+    client.SetServer searchd_host, searchd_port.to_i
+
+    client.SetMatchMode Sphinx::AdminController.default_match_mode
 
     client.SetFilter 'language', language
 

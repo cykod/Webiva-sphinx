@@ -33,11 +33,33 @@ class SphinxGenerator < Rails::Generator::Base
       m.directory "#{path}/index"
       m.directory "#{path}/logs"
       m.directory "#{path}/run"
+      m.directory "#{path}/data"
+      m.file 'data/stopwords-en.txt', "#{path}/data/stopwords-en.txt", {:collision => 'skip'}
       m.template 'config/sites/sphinx.conf', site_sphinx_conf_file_path
     end
   end
 
   def banner
     "Usage: #{$0} #{spec.name} <db name> [<searchd host>:<searchd port>]"
+  end
+
+  def data_path
+    return @data_path if @data_path
+    @data_path = "#{base_path}/data"
+  end
+
+  def stopwords
+    files = Dir.glob "#{data_path}/stopwords*.txt"
+    files ? files.join(' ') : ''
+  end
+
+  def wordforms
+    files = Dir.glob "#{data_path}/wordforms*.txt"
+    files ? files.join(' ') : ''
+  end
+
+  def exceptions
+    files = Dir.glob "#{data_path}/exceptions*.txt"
+    files ? files.join(' ') : ''
   end
 end
