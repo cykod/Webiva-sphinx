@@ -20,6 +20,8 @@ class SphinxSearch
 
     if options[:conditions]
       client.SetFilter('content_type_id', options[:conditions][:content_type_id]) if options[:conditions][:content_type_id]
+      client.SetFilter('protected_result', 0) if options[:conditions][:protected_result] && options[:conditions][:protected_result].blank?
+      client.SetFilter('search_result', 1) if options[:conditions][:search_result] && ! options[:conditions][:search_result].blank?
     end
 
     client.SetLimits(options[:offset], options[:limit]) if options[:offset] && options[:limit]

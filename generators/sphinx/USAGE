@@ -1,0 +1,3 @@
+Sphinx Info:
+    <db name>                        Required, name of the database using sphinx
+    [<searchd host>:<searchd port>]  Optional, searchd host and port, defaults to database host and 3312
