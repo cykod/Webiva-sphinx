@@ -29,7 +29,7 @@ class Sphinx::AdminController < ModuleController
     if request.post? && @options.valid?
       Configuration.set_config_model(@options)
 
-      SphinxSearch.run_worker_setup_sphinx_conf @domain['database']
+      SphinxSearch.run_worker_setup_sphinx_conf @domain['database'], @options.searchd
 
       flash[:notice] = "Updated Sphinx search options".t 
       redirect_to :controller => '/modules'
@@ -42,5 +42,10 @@ class Sphinx::AdminController < ModuleController
   end
 
   class Options < HashModel
+    attributes :searchd => nil
+
+    def validate
+      errors.add(:searchd) unless searchd.nil? || searchd.blank? || searchd =~ /^(.*):(\d+)$/
+    end
   end
 end

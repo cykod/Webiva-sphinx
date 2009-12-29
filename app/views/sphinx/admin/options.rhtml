@@ -1,5 +1,6 @@
 <div class='admin_content'>
 <% cms_form_for :options, @options, :html => {:class =>'admin_form' } do |f| -%>
+<%= f.text_field :searchd, :vertical => true, :label => 'Sphinx searchd (host:port)' %>
 <%= f.submit_tag 'Save' %>
 <%  end -%>
 </div>

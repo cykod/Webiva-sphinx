@@ -26,11 +26,14 @@ class SphinxGenerator < Rails::Generator::Base
       raise "invalid searchd host:port (#{searchd})" unless @searchd_host && @searchd_port
     end
 
+    site_sphinx_conf_file_path = "config/sites/sphinx_#{db_name}.conf"
+    File.unlink destination_path(site_sphinx_conf_file_path) if File.exists? destination_path(site_sphinx_conf_file_path)
+
     record do |m|
       m.directory "#{path}/index"
       m.directory "#{path}/logs"
       m.directory "#{path}/run"
-      m.template 'config/sites/sphinx.conf', "config/sites/sphinx_#{db_name}.conf"
+      m.template 'config/sites/sphinx.conf', site_sphinx_conf_file_path
     end
   end
 
