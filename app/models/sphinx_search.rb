@@ -49,17 +49,7 @@ class SphinxSearch
     params = { 'db_name' => db_name }
     params['searchd'] = searchd if ! searchd.blank?
 
-    worker_key = MiddleMan.new_worker(
-        :class => :domain_model_worker,
-        :args  => { :class_name => 'SphinxSearch',
-		    :entry_id => nil,
-		    :domain_id => DomainModel.active_domain_id,
-		    :params => params,
-		    :method => 'setup_sphinx_conf',
-		    :language => Locale.language_code
-		  })
-
-    worker_key
+    DomainModel.run_worker 'SphinxSearch', nil, 'setup_sphinx_conf', params
   end
 
   def self.setup_sphinx_conf(params = {})
