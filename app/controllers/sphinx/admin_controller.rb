@@ -23,9 +23,14 @@ class Sphinx::AdminController < ModuleController
     cms_page_path ['Options','Modules'], 'Sphinx Options'
     
     @options = self.class.module_options(params[:options])
-    
+
+    @domain = Domain.find(DomainModel.active_domain_id)
+
     if request.post? && @options.valid?
       Configuration.set_config_model(@options)
+
+      SphinxSearch.run_worker_setup_sphinx_conf @domain['database']
+
       flash[:notice] = "Updated Sphinx search options".t 
       redirect_to :controller => '/modules'
       return
