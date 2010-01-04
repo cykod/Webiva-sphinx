@@ -12,9 +12,7 @@ class SphinxSearch
   def self.search(language, search, options)
     client = Sphinx::Client.new
 
-    searchd = Sphinx::AdminController.searchd
-    searchd_host, searchd_port = searchd.split ':'
-    client.SetServer searchd_host, searchd_port.to_i
+    client.SetServer self.sphinx_host, self.sphinx_port
 
     client.SetMatchMode Sphinx::AdminController.default_match_mode
 
@@ -37,7 +35,7 @@ class SphinxSearch
 
       values = ids.map { |id| nodes[id] }
 
-      docs = values.map { |value| value.body }
+      docs = values.map(&:body)
       excerpts = client.BuildExcerpts(docs, 'main', search)
       values.each_index { |index| values[index].excerpt = excerpts[index] }
     end
@@ -45,9 +43,10 @@ class SphinxSearch
     [values, result['total_found']]
   end
 
-  def self.run_worker_setup_sphinx_conf(db_name, searchd=nil)
-    params = { 'db_name' => db_name }
-    params['searchd'] = searchd if ! searchd.blank?
+  def self.run_worker_setup_sphinx_conf(db_name)
+    params = { 'db_name' => db_name,
+               'searchd' => "#{self.sphinx_host}:#{self.sphinx_port}"
+             }
 
     DomainModel.run_worker 'SphinxSearch', nil, 'setup_sphinx_conf', params
   end
@@ -55,6 +54,31 @@ class SphinxSearch
   def self.setup_sphinx_conf(params = {})
     db_name = params['db_name']
     searchd = params['searchd'] ? params['searchd'] : '';
-    ok = `#{RAILS_ROOT}/script/generate sphinx #{db_name} #{searchd}`
+    ok = `#{RAILS_ROOT}/script/generate sphinx -f #{db_name} #{searchd}`
+  end
+
+  def self.sphinx_host
+    return DataCache.local_cache('sphinx_host') if DataCache.local_cache('sphinx_host')
+
+    sphinx_host = Configuration.get('sphinx_host', nil)
+    if sphinx_host.nil?
+      domain = Domain.find(DomainModel.active_domain_id)
+      config = YAML::load( File.open("#{RAILS_ROOT}/config/sites/#{domain.database}.yml") )
+      sphinx_host = config['production']['host']
+    end
+
+    DataCache.put_local_cache('sphinx_host', sphinx_host)
+  end
+
+  def self.sphinx_port
+    return DataCache.local_cache('sphinx_port') if DataCache.local_cache('sphinx_port')
+
+    sphinx_port = Configuration.get('sphinx_base_port', 3311).to_i + DomainModel.active_domain_id.to_i
+
+    DataCache.put_local_cache('sphinx_port', sphinx_port)
+  end
+
+  def self.default_match_mode
+    self.module_options.match_mode
   end
 end
