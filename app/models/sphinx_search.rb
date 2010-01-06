@@ -27,7 +27,12 @@ class SphinxSearch
     client.SetLimits(options[:offset], options[:limit]) if options[:offset] && options[:limit]
 
     values = []
-    result = client.Query search, 'dist'
+    escaped_search = "\"#{search}\"";
+    result = client.Query escaped_search, 'dist'
+    if ! result
+      return [values, 0]
+    end
+
     if result['matches'].length > 0
       ids = result['matches'].map { |match| match['id'] }
 
